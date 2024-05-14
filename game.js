@@ -201,10 +201,26 @@ canvas.addEventListener('click', () => {
 
 document.getElementById('startButton').addEventListener('click', resetGame);
 
+let backgroundX1 = 0;
+let backgroundX2 = canvas.width;
+
 function gameLoop() {
     if (running) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
+        
+        // Move background
+        backgroundX1 -= PIPE_SPEED;
+        backgroundX2 -= PIPE_SPEED;
+        
+        if (backgroundX1 <= -canvas.width) {
+            backgroundX1 = canvas.width;
+        }
+        if (backgroundX2 <= -canvas.width) {
+            backgroundX2 = canvas.width;
+        }
+        
+        ctx.drawImage(backgroundImg, backgroundX1, 0, canvas.width, canvas.height);
+        ctx.drawImage(backgroundImg, backgroundX2, 0, canvas.width, canvas.height);
 
         shark.update();
         shark.draw();
