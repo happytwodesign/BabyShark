@@ -5,15 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flappy Baby Shark</title>
     <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #87CEEB;
+        }
         canvas {
-            display: block;
-            margin: auto;
             background: url('background.png') no-repeat center center;
             background-size: cover;
         }
         #startButton {
-            display: block;
-            margin: 20px auto;
+            display: none;
             padding: 10px 20px;
             background-color: #e84694;
             color: white;
@@ -22,11 +29,17 @@
             border-radius: 10px;
             cursor: pointer;
         }
+        .game-container {
+            text-align: center;
+        }
     </style>
 </head>
 <body>
-    <canvas id="canvas" width="800" height="600"></canvas>
-    <button id="startButton">Start Over</button>
+    <div class="game-container">
+        <canvas id="canvas"></canvas>
+        <button id="startButton">Start Over</button>
+        <div id="tapMessage">Press SPACE or TAP to start over</div>
+    </div>
     <script src="game.js"></script>
 </body>
 </html>

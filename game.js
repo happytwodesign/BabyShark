@@ -25,6 +25,20 @@ const PIPE_FREQUENCY = 2000;
 let LAST_PIPE = Date.now();
 let LAST_FRAME = Date.now();
 
+function resizeCanvas() {
+    const aspectRatio = 4 / 3;
+    if (window.innerWidth / window.innerHeight > aspectRatio) {
+        canvas.height = window.innerHeight;
+        canvas.width = window.innerHeight * aspectRatio;
+    } else {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerWidth / aspectRatio;
+    }
+    ctx.scale(canvas.width / 800, canvas.height / 600);
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
 class BabyShark {
     constructor() {
         this.image = babySharkImg;
@@ -224,7 +238,7 @@ function gameLoop() {
 
         ctx.fillStyle = 'white';
         ctx.font = '28px Arial';
-        ctx.fillText(`Score: ${score}`, 10, 30);
+        ctx.fillText(`Score: ${score}`, 20, 50);
 
         if (gameOver) {
             ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
