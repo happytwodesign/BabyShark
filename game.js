@@ -26,15 +26,8 @@ let LAST_PIPE = Date.now();
 let LAST_FRAME = Date.now();
 
 function resizeCanvas() {
-    const aspectRatio = 4 / 3;
-    if (window.innerWidth / window.innerHeight > aspectRatio) {
-        canvas.height = window.innerHeight;
-        canvas.width = window.innerHeight * aspectRatio;
-    } else {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerWidth / aspectRatio;
-    }
-    ctx.scale(canvas.width / 800, canvas.height / 600);
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 }
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
@@ -204,23 +197,36 @@ document.getElementById('startButton').addEventListener('click', resetGame);
 let backgroundX1 = 0;
 let backgroundX2 = canvas.width;
 
+function drawBackground() {
+    let aspectRatio = backgroundImg.width / backgroundImg.height;
+    let bgWidth = canvas.width;
+    let bgHeight = canvas.width / aspectRatio;
+
+    if (bgHeight < canvas.height) {
+        bgHeight = canvas.height;
+        bgWidth = canvas.height * aspectRatio;
+    }
+
+    ctx.drawImage(backgroundImg, backgroundX1, 0, bgWidth, bgHeight);
+    ctx.drawImage(backgroundImg, backgroundX2, 0, bgWidth, bgHeight);
+}
+
 function gameLoop() {
     if (running) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
+
         // Move background
         backgroundX1 -= PIPE_SPEED;
         backgroundX2 -= PIPE_SPEED;
-        
+
         if (backgroundX1 <= -canvas.width) {
             backgroundX1 = canvas.width;
         }
         if (backgroundX2 <= -canvas.width) {
             backgroundX2 = canvas.width;
         }
-        
-        ctx.drawImage(backgroundImg, backgroundX1, 0, canvas.width, canvas.height);
-        ctx.drawImage(backgroundImg, backgroundX2, 0, canvas.width, canvas.height);
+
+        drawBackground();
 
         shark.update();
         shark.draw();
@@ -253,8 +259,8 @@ function gameLoop() {
         }
 
         ctx.fillStyle = 'white';
-        ctx.font = '28px Arial';
-        ctx.fillText(`Score: ${score}`, 20, 50);
+        ctx.font = `${canvas.width / 50}px Arial`; // Responsive font size
+        ctx.fillText(`Score: ${score}`, 30, 50);
 
         if (gameOver) {
             ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
@@ -262,12 +268,17 @@ function gameLoop() {
 
             ctx.fillStyle = 'white';
             ctx.textAlign = 'center';
+            ctx.font = `${canvas.width / 30}px Arial`; // Responsive font size
             ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2 - 50);
             ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 2);
 
             document.getElementById('startButton').style.display = 'block';
+            document.getElementById('startButton').style.top = `${canvas.height / 2 + 20}px`;
+            document.getElementById('tapMessage').style.display = 'block';
+            document.getElementById('tapMessage').style.top = `${canvas.height / 2 + 60}px`;
         } else {
             document.getElementById('startButton').style.display = 'none';
+            document.getElementById('tapMessage').style.display = 'none';
         }
     }
 
