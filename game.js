@@ -1,6 +1,8 @@
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
+const EMOJIS = ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇'];
+
 let babySharkImg = new Image();
 babySharkImg.src = 'baby_shark.png';
 
@@ -25,6 +27,8 @@ const PIPE_FREQUENCY = 2000;
 let LAST_PIPE = Date.now();
 let LAST_FRAME = Date.now();
 
+let user = { name: '', emoji: '' };
+
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -32,13 +36,56 @@ function resizeCanvas() {
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
+function getRandomEmoji() {
+    return EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+}
+
+function saveUserInfo(name) {
+    const emoji = getRandomEmoji();
+    user = { name, emoji };
+    localStorage.setItem('user', JSON.stringify(user));
+}
+
+function loadUserInfo() {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+        user = JSON.parse(userData);
+    } else {
+        document.getElementById('usernameInputContainer').style.display = 'flex';
+    }
+}
+
+function saveScore(score) {
+    let scores = JSON.parse(localStorage.getItem('scores')) || [];
+    const existingUser = scores.find(entry => entry.name === user.name);
+    if (existingUser) {
+        existingUser.score = Math.max(existingUser.score, score);
+    } else {
+        scores.push({ name: user.name, emoji: user.emoji, score });
+    }
+    scores.sort((a, b) => b.score - a.score);
+    scores = scores.slice(0, 5); // Top 5 scores
+    localStorage.setItem('scores', JSON.stringify(scores));
+}
+
+function loadLeaderboard() {
+    const scores = JSON.parse(localStorage.getItem('scores')) || [];
+    const leaderboardList = document.getElementById('leaderboardList');
+    leaderboardList.innerHTML = '';
+    scores.forEach((entry) => {
+        const li = document.createElement('li');
+        li.textContent = `${entry.emoji} ${entry.name}: ${entry.score}`;
+        leaderboardList.appendChild(li);
+    });
+}
+
 class BabyShark {
     constructor() {
         this.image = babySharkImg;
         this.x = 100;
         this.y = canvas.height / 2;
-        this.width = 80;
-        this.height = 40;
+        this.width = canvas.width / 10;
+        this.height = this.width / 2;
         this.velocity = 0;
     }
 
@@ -91,15 +138,26 @@ class Pipe {
         this.images = jellyfishFrames;
         this.frameIndex = 0;
         this.image = this.images[this.frameIndex];
-        this.width = 80;
-        this.height = 150;
+        this.width = canvas.width / 10;
+        this.height = canvas.height / 4 * (Math.random() * 0.5 + 0.75);
         this.x = canvas.width;
         this.y = inverted ? y - PIPE_GAP / 2 - this.height : y + PIPE_GAP / 2;
         this.inverted = inverted;
+        this.verticalSpeed = (Math.random() - 0.5) * 2; // Random vertical speed
     }
 
     update() {
         this.x -= PIPE_SPEED;
+        this.y += this.verticalSpeed;
+
+        // Ensure pipes stay within the canvas vertically
+        if (this.inverted && this.y + this.height > canvas.height / 2) {
+            this.y = canvas.height / 2 - this.height;
+            this.verticalSpeed = -this.verticalSpeed;
+        } else if (!this.inverted && this.y < canvas.height / 2) {
+            this.y = canvas.height / 2;
+            this.verticalSpeed = -this.verticalSpeed;
+        }
 
         if (Date.now() - LAST_FRAME > 200) {
             this.frameIndex = (this.frameIndex + 1) % this.images.length;
@@ -159,6 +217,7 @@ let bubbles = [];
 let score = 0;
 let running = false;
 let gameOver = false;
+let holdShark = true;
 
 for (let i = 0; i < 20; i++) {
     bubbles.push(new Bubble(Math.random() * canvas.width, Math.random() * canvas.height));
@@ -170,12 +229,25 @@ function resetGame() {
     score = 0;
     running = true;
     gameOver = false;
+    holdShark = true;
     LAST_PIPE = Date.now();
     LAST_FRAME = Date.now();
+    setTimeout(() => {
+        holdShark = false;
+    }, 1000);
 }
 
+document.getElementById('submitUsername').addEventListener('click', () => {
+    const usernameInput = document.getElementById('usernameInput').value;
+    if (usernameInput) {
+        saveUserInfo(usernameInput);
+        document.getElementById('usernameInputContainer').style.display = 'none';
+        resetGame();  // Start the game immediately after entering the name
+    }
+});
+
 document.addEventListener('keydown', (e) => {
-    if (e.code === 'Space') {
+    if (e.code === 'Space' && !holdShark) {
         if (!running) {
             resetGame();
         } else {
@@ -185,10 +257,12 @@ document.addEventListener('keydown', (e) => {
 });
 
 canvas.addEventListener('click', () => {
-    if (!running) {
-        resetGame();
-    } else {
-        shark.flap();
+    if (!holdShark) {
+        if (!running) {
+            resetGame();
+        } else {
+            shark.flap();
+        }
     }
 });
 
@@ -228,7 +302,9 @@ function gameLoop() {
 
         drawBackground();
 
-        shark.update();
+        if (!holdShark) {
+            shark.update();
+        }
         shark.draw();
 
         if (Date.now() - LAST_PIPE > PIPE_FREQUENCY) {
@@ -243,6 +319,8 @@ function gameLoop() {
             if (pipePair.collide(shark)) {
                 gameOver = true;
                 running = false;
+                saveScore(score);
+                loadLeaderboard();
             }
 
             if (!pipePair.passed && pipePair.topPipe.x + pipePair.topPipe.width < shark.x) {
@@ -268,7 +346,7 @@ function gameLoop() {
 
             ctx.fillStyle = 'white';
             ctx.textAlign = 'center';
-            ctx.font = `${canvas.width / 30}px Arial`; // Responsive font size
+            ctx.font = `${canvas.width / 25}px Arial`; // Responsive font size
             ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2 - 50);
             ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 2);
 
@@ -276,13 +354,21 @@ function gameLoop() {
             document.getElementById('startButton').style.top = `${canvas.height / 2 + 20}px`;
             document.getElementById('tapMessage').style.display = 'block';
             document.getElementById('tapMessage').style.top = `${canvas.height / 2 + 60}px`;
+            document.getElementById('leaderboard').style.display = 'block';
         } else {
             document.getElementById('startButton').style.display = 'none';
             document.getElementById('tapMessage').style.display = 'none';
+            document.getElementById('leaderboard').style.display = 'none';
         }
     }
 
     requestAnimationFrame(gameLoop);
 }
 
+function clearLeaderboard() {
+    localStorage.removeItem('scores');
+}
+
+clearLeaderboard();
+loadUserInfo();
 gameLoop();
