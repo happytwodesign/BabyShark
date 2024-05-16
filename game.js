@@ -1,7 +1,7 @@
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
-const EMOJIS = ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇'];
+const EMOJIS = ['🦔', '🐵', '🐶', '🐹', '🦊', '🦁', '🦄', '🦓', '🦒', '🦙'];
 
 let babySharkImg = new Image();
 babySharkImg.src = 'baby_shark.png';
@@ -26,6 +26,7 @@ const PIPE_GAP = 200;
 const PIPE_FREQUENCY = 2000;
 let LAST_PIPE = Date.now();
 let LAST_FRAME = Date.now();
+const ACCELERATION = 0.003; // Новое значение ускорения
 
 let user = { name: '', emoji: '' };
 
@@ -87,10 +88,12 @@ class BabyShark {
         this.width = canvas.width / 10;
         this.height = this.width / 2;
         this.velocity = 0;
+        this.acceleration = 0; // Новая переменная для ускорения
     }
 
     update() {
-        this.velocity += GRAVITY;
+        this.acceleration += ACCELERATION; // Увеличиваем ускорение
+        this.velocity += GRAVITY + this.acceleration; // Применяем ускорение
         this.y += this.velocity;
 
         if (this.y < 0) {
@@ -103,6 +106,7 @@ class BabyShark {
 
     flap() {
         this.velocity = FLAP_POWER;
+        this.acceleration = 0; // Сбрасываем ускорение при взмахе
     }
 
     draw() {
@@ -143,14 +147,14 @@ class Pipe {
         this.x = canvas.width;
         this.y = inverted ? y - PIPE_GAP / 2 - this.height : y + PIPE_GAP / 2;
         this.inverted = inverted;
-        this.verticalSpeed = (Math.random() - 0.5) * 2; // Random vertical speed
+        this.verticalSpeed = (Math.random() - 0.5) * 2; // Случайная вертикальная скорость
     }
 
     update() {
         this.x -= PIPE_SPEED;
         this.y += this.verticalSpeed;
 
-        // Ensure pipes stay within the canvas vertically
+        // Обеспечиваем, чтобы трубы оставались в пределах экрана по вертикали
         if (this.inverted && this.y + this.height > canvas.height / 2) {
             this.y = canvas.height / 2 - this.height;
             this.verticalSpeed = -this.verticalSpeed;
@@ -242,31 +246,27 @@ document.getElementById('submitUsername').addEventListener('click', () => {
     if (usernameInput) {
         saveUserInfo(usernameInput);
         document.getElementById('usernameInputContainer').style.display = 'none';
-        resetGame();  // Start the game immediately after entering the name
+        resetGame();  // Начать игру сразу после ввода имени
     }
 });
 
 document.addEventListener('keydown', (e) => {
     if (e.code === 'Space' && !holdShark) {
-        if (!running) {
-            resetGame();
-        } else {
-            shark.flap();
-        }
+        shark.flap();
     }
 });
 
 canvas.addEventListener('click', () => {
     if (!holdShark) {
-        if (!running) {
-            resetGame();
-        } else {
-            shark.flap();
-        }
+        shark.flap();
     }
 });
 
-document.getElementById('startButton').addEventListener('click', resetGame);
+document.getElementById('startButton').addEventListener('click', () => {
+    resetGame();
+    document.getElementById('startButton').style.display = 'none'; // Скрыть кнопку после начала игры
+    document.getElementById('tapMessage').style.display = 'none'; // Скрыть сообщение после начала игры
+});
 
 let backgroundX1 = 0;
 let backgroundX2 = canvas.width;
@@ -346,7 +346,7 @@ function gameLoop() {
 
             ctx.fillStyle = 'white';
             ctx.textAlign = 'center';
-            ctx.font = `${canvas.width / 25}px Arial`; // Responsive font size
+            ctx.font = `${canvas.width / 40}px Arial`; // Responsive font size
             ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2 - 50);
             ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 2);
 
@@ -369,6 +369,7 @@ function clearLeaderboard() {
     localStorage.removeItem('scores');
 }
 
-clearLeaderboard();
+// clearLeaderboard(); // Удалите комментарий, если хотите очистить leaderboard при каждом запуске
+
 loadUserInfo();
 gameLoop();
