@@ -21,12 +21,14 @@ backgroundImg.src = 'background.png';
 
 const GRAVITY = 0.25;
 const FLAP_POWER = -5;
-const PIPE_SPEED = 2;
 const PIPE_GAP = 200;
-const PIPE_FREQUENCY = 2000;
+const PIPE_FREQUENCY = 2500;
 let LAST_PIPE = Date.now();
 let LAST_FRAME = Date.now();
-const ACCELERATION = 0.003; // Новое значение ускорения
+const INITIAL_PIPE_SPEED = 2;
+const SPEED_INCREMENT = 0.0005; // Новая переменная для увеличения скорости
+
+let backgroundSpeed = INITIAL_PIPE_SPEED;
 
 let user = { name: '', emoji: '' };
 
@@ -88,12 +90,10 @@ class BabyShark {
         this.width = canvas.width / 10;
         this.height = this.width / 2;
         this.velocity = 0;
-        this.acceleration = 0; // Новая переменная для ускорения
     }
 
     update() {
-        this.acceleration += ACCELERATION; // Увеличиваем ускорение
-        this.velocity += GRAVITY + this.acceleration; // Применяем ускорение
+        this.velocity += GRAVITY;
         this.y += this.velocity;
 
         if (this.y < 0) {
@@ -106,7 +106,6 @@ class BabyShark {
 
     flap() {
         this.velocity = FLAP_POWER;
-        this.acceleration = 0; // Сбрасываем ускорение при взмахе
     }
 
     draw() {
@@ -151,7 +150,7 @@ class Pipe {
     }
 
     update() {
-        this.x -= PIPE_SPEED;
+        this.x -= backgroundSpeed;
         this.y += this.verticalSpeed;
 
         // Обеспечиваем, чтобы трубы оставались в пределах экрана по вертикали
@@ -234,6 +233,7 @@ function resetGame() {
     running = true;
     gameOver = false;
     holdShark = true;
+    backgroundSpeed = INITIAL_PIPE_SPEED;
     LAST_PIPE = Date.now();
     LAST_FRAME = Date.now();
     setTimeout(() => {
@@ -281,8 +281,19 @@ function drawBackground() {
         bgWidth = canvas.height * aspectRatio;
     }
 
+    // Draw the first background image
     ctx.drawImage(backgroundImg, backgroundX1, 0, bgWidth, bgHeight);
+    
+    // Draw the second background image
     ctx.drawImage(backgroundImg, backgroundX2, 0, bgWidth, bgHeight);
+    
+    // Add an extra draw call to cover the gap
+    if (backgroundX1 < 0) {
+        ctx.drawImage(backgroundImg, backgroundX1 + bgWidth, 0, bgWidth, bgHeight);
+    }
+    if (backgroundX2 < 0) {
+        ctx.drawImage(backgroundImg, backgroundX2 + bgWidth, 0, bgWidth, bgHeight);
+    }
 }
 
 function gameLoop() {
@@ -290,8 +301,8 @@ function gameLoop() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // Move background
-        backgroundX1 -= PIPE_SPEED;
-        backgroundX2 -= PIPE_SPEED;
+        backgroundX1 -= backgroundSpeed;
+        backgroundX2 -= backgroundSpeed;
 
         if (backgroundX1 <= -canvas.width) {
             backgroundX1 = canvas.width;
@@ -359,6 +370,9 @@ function gameLoop() {
             document.getElementById('startButton').style.display = 'none';
             document.getElementById('tapMessage').style.display = 'none';
             document.getElementById('leaderboard').style.display = 'none';
+
+            // Увеличиваем скорость фона и труб
+            backgroundSpeed += SPEED_INCREMENT;
         }
     }
 
