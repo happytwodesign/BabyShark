@@ -46,17 +46,75 @@
             font-size: 16px;
             color: white;
             margin-top: 10px;
-            padding: 10px 20px;
             display: none;
-            font-family: 'Arial', sans-serif;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        #usernameInputContainer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-image: url('background.png');
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        #usernameInputContainer img {
+            width: 80%;
+            max-width: 400px;
+            margin-bottom: 20px;
+        }
+        #usernameInput {
+            font-size: 20px;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+        }
+        #submitUsername {
+            background-color: #e84694;
+            color: white;
+            font-size: 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            padding: 10px 20px;
+        }
+        #leaderboard {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            top: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            display: none;
+            font-family: Arial, sans-serif;
+        }
+        #leaderboard h3 {
+            text-align: center;
         }
     </style>
 </head>
 <body>
     <div class="game-container">
         <canvas id="canvas"></canvas>
+        <div id="usernameInputContainer">
+            <img src="BabySharkOnTheHunt.png" alt="Game Name">
+            <input id="usernameInput" type="text" placeholder="Enter your name">
+            <button id="submitUsername">Start Game</button>
+        </div>
         <button id="startButton">Start Over</button>
         <div id="tapMessage">Press SPACE or TAP to start over</div>
+        <div id="leaderboard">
+            <h3>Top Results</h3>
+            <ol id="leaderboardList"></ol>
+        </div>
     </div>
     <script src="game.js"></script>
 </body>
