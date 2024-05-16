@@ -357,7 +357,7 @@ function gameLoop() {
 
             ctx.fillStyle = 'white';
             ctx.textAlign = 'center';
-            ctx.font = `${canvas.width / 25}px Arial`; // Responsive font size
+            ctx.font = `${canvas.width / 40}px Arial`; // Responsive font size
             ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2 - 50);
             ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 2);
 
