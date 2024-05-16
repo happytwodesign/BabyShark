@@ -22,11 +22,11 @@ backgroundImg.src = 'background.png';
 const GRAVITY = 0.25;
 const FLAP_POWER = -5;
 const PIPE_GAP = 200;
-const PIPE_FREQUENCY = 2500;
+const PIPE_FREQUENCY = 2000;
 let LAST_PIPE = Date.now();
 let LAST_FRAME = Date.now();
 const INITIAL_PIPE_SPEED = 2;
-const SPEED_INCREMENT = 0.0005; // Новая переменная для увеличения скорости
+const SPEED_INCREMENT = 0.001;
 
 let backgroundSpeed = INITIAL_PIPE_SPEED;
 
@@ -85,10 +85,10 @@ function loadLeaderboard() {
 class BabyShark {
     constructor() {
         this.image = babySharkImg;
+        this.width = canvas.width * 0.1;
+        this.height = this.width * 0.5;
         this.x = 100;
         this.y = canvas.height / 2;
-        this.width = canvas.width / 10;
-        this.height = this.width / 2;
         this.velocity = 0;
     }
 
@@ -141,8 +141,8 @@ class Pipe {
         this.images = jellyfishFrames;
         this.frameIndex = 0;
         this.image = this.images[this.frameIndex];
-        this.width = canvas.width / 10;
-        this.height = canvas.height / 4 * (Math.random() * 0.5 + 0.75);
+        this.width = canvas.width * 0.1;
+        this.height = canvas.height * (Math.random() * 0.3 + 0.2); // Высота медузы изменена в зависимости от высоты экрана
         this.x = canvas.width;
         this.y = inverted ? y - PIPE_GAP / 2 - this.height : y + PIPE_GAP / 2;
         this.inverted = inverted;
@@ -357,7 +357,7 @@ function gameLoop() {
 
             ctx.fillStyle = 'white';
             ctx.textAlign = 'center';
-            ctx.font = `${canvas.width / 40}px Arial`; // Responsive font size
+            ctx.font = `${canvas.width / 25}px Arial`; // Responsive font size
             ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2 - 50);
             ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 2);
 
