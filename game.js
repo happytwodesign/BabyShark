@@ -84,8 +84,9 @@ function loadLeaderboard() {
 
 class BabyShark {
     constructor() {
+        const sizeFactor = window.innerWidth <= 768 ? 0.2 : 0.1;
         this.image = babySharkImg;
-        this.width = canvas.width * 0.1;
+        this.width = Math.min(canvas.width * sizeFactor, canvas.height * sizeFactor);
         this.height = this.width * 0.5;
         this.x = 100;
         this.y = canvas.height / 2;
@@ -141,12 +142,15 @@ class Pipe {
         this.images = jellyfishFrames;
         this.frameIndex = 0;
         this.image = this.images[this.frameIndex];
-        this.width = canvas.width * 0.1;
-        this.height = canvas.height * (Math.random() * 0.3 + 0.2); // Высота медузы изменена в зависимости от высоты экрана
+
+        const sizeFactor = window.innerWidth <= 768 ? 0.2 : 0.1;
+        this.width = Math.min(canvas.width * sizeFactor, canvas.height * sizeFactor) * (Math.random() * 0.2 + 0.9);
+        this.height = this.width * (Math.random() * 0.4 + 1.8);  // Высота от 1.8 до 2.2 ширины для сохранения пропорций
+
         this.x = canvas.width;
         this.y = inverted ? y - PIPE_GAP / 2 - this.height : y + PIPE_GAP / 2;
         this.inverted = inverted;
-        this.verticalSpeed = (Math.random() - 0.5) * 2; // Случайная вертикальная скорость
+        this.verticalSpeed = (Math.random() - 0.5) * 2;  // Случайная вертикальная скорость
     }
 
     update() {
@@ -275,19 +279,38 @@ function drawBackground() {
     let aspectRatio = backgroundImg.width / backgroundImg.height;
     let bgWidth = canvas.width;
     let bgHeight = canvas.width / aspectRatio;
+    if (bgHeight < canvas.height) {
+        bgHeight = canvas.height;
+        bgWidth = canvas.height * aspectRatio;
+    }
+    
+    // Рисуем первый фон
+    ctx.drawImage(backgroundImg, backgroundX1, 0, bgWidth, bgHeight);
+    
+    // Рисуем второй фон
+    ctx.drawImage(backgroundImg, backgroundX2, 0, bgWidth, bgHeight);
+    
+    // Добавляем дополнительный вызов для покрытия зазора
+    if (backgroundX1 < 0) {
+        ctx.drawImage(backgroundImg, backgroundX1 + bgWidth, 0, bgWidth, bgHeight);
+    }
+    if (backgroundX2 < 0) {
+        ctx.drawImage(backgroundImg, backgroundX2 + bgWidth, 0, bgWidth, bgHeight);
+    }
+    ;
 
     if (bgHeight < canvas.height) {
         bgHeight = canvas.height;
         bgWidth = canvas.height * aspectRatio;
     }
 
-    // Draw the first background image
+    // Рисуем первый фон
     ctx.drawImage(backgroundImg, backgroundX1, 0, bgWidth, bgHeight);
     
-    // Draw the second background image
+    // Рисуем второй фон
     ctx.drawImage(backgroundImg, backgroundX2, 0, bgWidth, bgHeight);
     
-    // Add an extra draw call to cover the gap
+    // Добавляем дополнительный вызов для покрытия зазора
     if (backgroundX1 < 0) {
         ctx.drawImage(backgroundImg, backgroundX1 + bgWidth, 0, bgWidth, bgHeight);
     }
